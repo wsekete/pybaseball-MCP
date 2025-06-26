@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "pybaseball": {
+      "command": "python3",
+      "args": ["/path/to/pybaseball-mcp-server/server.py"],
+      "description": "Baseball statistics and analytics server using pybaseball",
+      "env": {
+        "PYTHONPATH": "/path/to/pybaseball-mcp-server"
+      }
+    }
+  }
+}

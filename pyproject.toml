@@ -1,0 +1,136 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pybaseball-mcp"
+version = "1.0.0"
+description = "A comprehensive Model Context Protocol (MCP) server for baseball statistics and analytics using pybaseball"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Wesley Sekete", email = "wsekete@example.com"}
+]
+keywords = ["baseball", "mcp", "statistics", "analytics", "pybaseball", "model-context-protocol"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "mcp>=1.0.0",
+    "pybaseball>=2.2.0",
+    "pandas>=1.5.0",
+    "numpy>=1.24.0",
+    "matplotlib>=3.6.0",
+    "seaborn>=0.12.0",
+    "pillow>=9.0.0",
+    "python-dateutil>=2.8.0",
+    "requests>=2.28.0",
+    "fuzzywuzzy>=0.18.0",
+    "python-Levenshtein>=0.20.0",
+    "openpyxl>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+docker = [
+    "gunicorn>=20.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/wsekete/pybaseball-MCP"
+Documentation = "https://github.com/wsekete/pybaseball-MCP#readme"
+Repository = "https://github.com/wsekete/pybaseball-MCP.git"
+Issues = "https://github.com/wsekete/pybaseball-MCP/issues"
+
+[project.scripts]
+pybaseball-mcp = "server:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tools*", "utils*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.txt", "*.yml", "*.yaml", "*.json"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["tools", "utils"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers"
+testpaths = [
+    "tests",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pybaseball.*",
+    "fuzzywuzzy.*",
+    "seaborn.*",
+    "matplotlib.*",
+]
+ignore_missing_imports = true
