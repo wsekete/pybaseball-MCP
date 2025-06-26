@@ -19,6 +19,8 @@ from typing import Optional, Dict, Any
 import asyncio
 import sys
 import os
+import json
+import re
 
 from mcp.server.fastmcp import FastMCP
 from tools.player_tools import register_player_tools
@@ -83,6 +85,60 @@ mcp = FastMCP(
 )
 
 
+# Chart display interceptor
+def process_chart_response(response: str) -> Any:
+    """
+    Process responses to detect and handle chart artifacts.
+    
+    Args:
+        response: Tool response string
+        
+    Returns:
+        Either the original response or processed chart data
+    """
+    if response.startswith("CHART_ARTIFACT:"):
+        try:
+            # Extract the artifact data
+            artifact_json = response.replace("CHART_ARTIFACT:", "")
+            artifact_data = eval(artifact_json)  # Safe because we control the input
+            
+            logger.info(f"📊 Processing chart artifact: {artifact_data.get('title', 'Unknown Chart')}")
+            
+            # Return the artifact data for Claude to process
+            return {
+                "type": "artifact",
+                "data": artifact_data
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error processing chart artifact: {e}")
+            return response
+    
+    return response
+
+
+# Wrap tool execution to handle chart responses
+original_tool_executor = None
+
+def enhanced_tool_wrapper(original_func):
+    """Wrapper to enhance tool responses with chart processing."""
+    async def wrapper(*args, **kwargs):
+        # Execute the original tool
+        result = await original_func(*args, **kwargs)
+        
+        # Process the result for chart artifacts
+        if isinstance(result, str):
+            processed_result = process_chart_response(result)
+            if isinstance(processed_result, dict) and processed_result.get("type") == "artifact":
+                # Return special format that Claude can recognize
+                artifact_data = processed_result["data"]
+                return f"__ARTIFACT__{json.dumps(artifact_data)}__END_ARTIFACT__"
+        
+        return result
+    
+    return wrapper
+
+
 # Health check resource
 @mcp.resource("health://status")
 def health_check() -> str:
@@ -100,7 +156,7 @@ def server_info() -> str:
 ## Available Tool Categories:
 - **Player Tools**: Player lookup, identification, and basic info
 - **Stats Tools**: Batting, pitching, and fielding statistics
-- **Plotting Tools**: Data visualization and charts
+- **Plotting Tools**: Data visualization and charts with enhanced display
 
 ## Data Sources:
 - FanGraphs
@@ -111,9 +167,16 @@ def server_info() -> str:
 ## Features:
 - Comprehensive player statistics
 - Advanced analytics and metrics
-- Data visualization capabilities
+- Interactive data visualization capabilities
 - Historical data access
 - Real-time season data
+- Compact chart displays with tabular summaries
+
+## Chart Features:
+- Spray charts with field distribution analysis
+- Player comparison charts with statistical insights
+- Compact displays optimized for inline viewing
+- Both graphical and tabular data presentation
 """
 
 
@@ -131,6 +194,7 @@ def main():
         register_plotting_tools(mcp)
         
         logger.info("✅ All tools registered successfully")
+        logger.info("📊 Chart display enhancement activated")
         logger.info("🌐 Starting MCP server...")
         logger.info("⏳ Server will now listen for connections...")
         logger.info("📡 Use Ctrl+C to stop the server")
